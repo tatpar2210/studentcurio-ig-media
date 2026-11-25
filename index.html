@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><title>StudentCurio media bridge</title>
+<body style="font:16px system-ui;padding:24px">Media bridge. <span id="s">idle</span>
+<script>
+// Opened by the scheduler tab: fetches the listed files (same origin) and hands them to window.opener.
+const q = new URLSearchParams(location.search), files = (q.get('files') || '').split(',').filter(Boolean);
+const s = document.getElementById('s');
+(async () => {
+  if (!files.length) return;
+  if (!window.opener) { s.textContent = 'no opener'; return; }
+  for (const f of files) {
+    s.textContent = 'fetching ' + f;
+    const r = await fetch(f); const buf = await r.arrayBuffer();
+    const type = f.endsWith('.mp4') ? 'video/mp4' : 'image/png';
+    window.opener.postMessage({ scMedia: true, name: f, type, buf }, '*', [buf]);
+  }
+  window.opener.postMessage({ scMedia: true, done: true, files }, '*');
+  s.textContent = 'sent ' + files.length;
+})().catch(e => { s.textContent = 'error ' + e; try { window.opener.postMessage({ scMedia: true, error: String(e) }, '*'); } catch (_) {} });
+</script>
