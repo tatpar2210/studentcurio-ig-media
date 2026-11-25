@@ -4,17 +4,18 @@
 // Opened by the scheduler tab: fetches the listed files (same origin) and hands them to window.opener.
 const q = new URLSearchParams(location.search), files = (q.get('files') || '').split(',').filter(Boolean);
 const s = document.getElementById('s');
+const T = window.opener || (window.parent !== window ? window.parent : null);
 (async () => {
   if (!files.length) return;
-  if (!window.opener) { s.textContent = 'no opener'; return; }
+  if (!T) { s.textContent = 'no opener'; return; }
   for (const f of files) {
     s.textContent = 'fetching ' + f;
     const r = await fetch(f); const buf = await r.arrayBuffer();
     const type = f.endsWith('.mp4') ? 'video/mp4' : 'image/png';
-    window.opener.postMessage({ scMedia: true, name: f, type, buf }, '*', [buf]);
+    T.postMessage({ scMedia: true, name: f, type, buf }, '*', [buf]);
   }
-  window.opener.postMessage({ scMedia: true, done: true, files }, '*');
+  T.postMessage({ scMedia: true, done: true, files }, '*');
   s.textContent = 'sent ' + files.length;
-  setTimeout(() => window.close(), 300);
-})().catch(e => { s.textContent = 'error ' + e; try { window.opener.postMessage({ scMedia: true, error: String(e) }, '*'); } catch (_) {} setTimeout(() => window.close(), 300); });
+  setTimeout(() => window.opener && window.close(), 300);
+})().catch(e => { s.textContent = 'error ' + e; try { T.postMessage({ scMedia: true, error: String(e) }, '*'); } catch (_) {} setTimeout(() => window.opener && window.close(), 300); });
 </script>
