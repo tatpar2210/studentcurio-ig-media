@@ -15,5 +15,6 @@ const s = document.getElementById('s');
   }
   window.opener.postMessage({ scMedia: true, done: true, files }, '*');
   s.textContent = 'sent ' + files.length;
-})().catch(e => { s.textContent = 'error ' + e; try { window.opener.postMessage({ scMedia: true, error: String(e) }, '*'); } catch (_) {} });
+  setTimeout(() => window.close(), 300);
+})().catch(e => { s.textContent = 'error ' + e; try { window.opener.postMessage({ scMedia: true, error: String(e) }, '*'); } catch (_) {} setTimeout(() => window.close(), 300); });
 </script>
